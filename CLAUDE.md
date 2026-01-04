@@ -6,6 +6,11 @@ Arduino-based DMX lighting controller for a rehearsal room with predefined scene
 
 Simple, standalone DMX controller without PC connection. Operation via toggle switch (Master On/Off) and two buttons (preset previous/next). Current scene displayed on 7-segment display.
 
+**Features:**
+- Smooth 1-second fade transitions between scenes
+- EEPROM memory: Restores last active scene after power cycle
+- 20 predefined scenes optimized for rehearsal room use
+
 ## Hardware
 
 ### Controller
@@ -52,6 +57,7 @@ Simple, standalone DMX controller without PC connection. Operation via toggle sw
 - `Adafruit GFX Library` – Display foundation
 - `Adafruit LED Backpack` – 7-segment control
 - `Wire` – I2C (included in Arduino Core)
+- `EEPROM` – Scene memory (included in Arduino Core)
 
 ### File Structure
 ```
@@ -123,17 +129,34 @@ Values depend on the physical mounting position of the PicoBeams. Calibrate on-s
 3. Extend or create new structs
 4. Extend `outputScene()`
 
+## Features
+
+### Smooth Scene Transitions
+- 1-second linear fade between scenes (configurable)
+- 50 interpolation steps for smooth color mixing
+- Fades all channels: pan, tilt, colors, dimmer, etc.
+- UV light snaps instantly (no fade) for better visual effect
+- Adjustable via `FADE_DURATION_MS` and `FADE_STEPS` constants
+
+### EEPROM Scene Memory
+- Automatically saves current scene to EEPROM on change
+- Restores last active scene on power-up
+- Magic number validation to detect first run
+- Uses `EEPROM.update()` to minimize write cycles
+
 ## Known Limitations
 
-- No fading between scenes (hard switching)
 - LED Bar 12-channel mode: Segment 4 only has R channel, G/B missing
 - Scenes only modifiable in code, no runtime programming
 - No MIDI input (intentionally kept simple)
+- Fade is linear (not eased curves)
 
 ## Possible Extensions
 
-- [ ] Soft fade between scenes
-- [ ] EEPROM: Restore last scene on startup
+- [x] Soft fade between scenes ✓ Implemented
+- [x] EEPROM: Restore last scene on startup ✓ Implemented
+- [ ] Easing curves for fades (ease-in/ease-out)
+- [ ] Adjustable fade time via buttons (hold to configure)
 - [ ] Encoder for manual dimmer control
 - [ ] MIDI input for external control
 - [ ] Scene names on OLED instead of just number

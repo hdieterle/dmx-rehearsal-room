@@ -7,6 +7,8 @@ A simple, standalone Arduino-based DMX lighting controller for rehearsal rooms w
 - **Standalone Operation**: No PC required - works completely independently
 - **Simple Controls**: Toggle switch for master on/off, two buttons for scene navigation
 - **20 Preset Scenes**: Organized into working, mood, and show lighting categories
+- **Smooth Transitions**: 1-second fade between scenes for professional look
+- **Scene Memory**: Automatically remembers last scene after power cycle (EEPROM)
 - **Visual Feedback**: 7-segment display shows current scene number
 - **Multi-Device Support**: Controls moving heads, LED bars, and additional lighting
 
@@ -52,6 +54,7 @@ Install these libraries via Arduino IDE Library Manager:
 - `Adafruit GFX Library`
 - `Adafruit LED Backpack`
 - `Wire` (included with Arduino IDE)
+- `EEPROM` (included with Arduino IDE)
 
 #### Upload the Sketch
 1. Open `proberaum_dmx.ino` in Arduino IDE
@@ -77,8 +80,12 @@ Configure your DMX fixtures with these start addresses:
 
 ### Basic Operation
 1. **Power on** the Arduino controller
+   - Controller automatically restores the last active scene from memory
 2. Use the **Master Switch** to enable/disable all lights (displays "OFF" when disabled)
+   - Turning off fades smoothly to blackout
 3. Press **Next/Previous buttons** to cycle through scenes 0-19
+   - Scenes fade smoothly over 1 second
+   - Current scene is saved to memory automatically
 4. The display shows the current scene number (e.g., "P.05" for scene 5)
 
 ### Scene Categories
@@ -135,22 +142,28 @@ Adjust these values in the scene definitions based on your room layout.
 ## Technical Details
 
 - **Memory**: Scenes stored in PROGMEM (Flash) to conserve RAM
-- **Scene Switching**: Hard switching (no fade transitions)
+- **Scene Transitions**: 1-second linear fade with 50 interpolation steps
+  - UV light snaps instantly (no fade) for better visual effect
+- **Scene Memory**: EEPROM-based persistence with magic number validation
 - **Display Update**: Immediate when changing scenes
 - **Button Debouncing**: 50ms debounce delay implemented
+- **Fade Customization**: Adjustable via `FADE_DURATION_MS` and `FADE_STEPS` constants
 
 ## Known Limitations
 
-- No fade transitions between scenes
+- Fade transitions use linear interpolation (no easing curves)
 - Scenes can only be modified by uploading new code (no runtime programming)
 - LED Bar segment 4 has limited color control in 12-channel mode (R only, G/B missing)
 - No MIDI input support
+- EEPROM has ~100,000 write cycle limit (scene changes only, very long lifespan)
 
 ## Future Enhancements
 
 Potential improvements for future versions:
-- Soft fade transitions between scenes
-- EEPROM storage to remember last active scene
+- ✅ Soft fade transitions between scenes (implemented)
+- ✅ EEPROM storage to remember last active scene (implemented)
+- Easing curves for fades (ease-in/ease-out)
+- Adjustable fade time via buttons
 - Manual dimmer control via rotary encoder
 - MIDI input for external control
 - OLED display showing scene names instead of numbers

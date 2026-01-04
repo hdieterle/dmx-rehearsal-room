@@ -27,6 +27,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_LEDBackpack.h>
+#include <EEPROM.h>
 
 Adafruit_7segment display = Adafruit_7segment();
 
@@ -45,6 +46,16 @@ const byte BOTEX_COUCH = 63;
 const byte BOTEX_UV = 64;
 
 const byte TOTAL_CHANNELS = 64;
+
+// === FADE SETTINGS ===
+const unsigned int FADE_DURATION_MS = 1000;  // 1 second fade time
+const byte FADE_STEPS = 50;                   // Number of fade steps
+const unsigned int FADE_STEP_DELAY = FADE_DURATION_MS / FADE_STEPS;
+
+// === EEPROM SETTINGS ===
+const int EEPROM_ADDR_SCENE = 0;      // Address to store current scene
+const int EEPROM_ADDR_MAGIC = 1;      // Address to store magic number
+const byte EEPROM_MAGIC = 0xA5;       // Magic number to verify valid EEPROM data
 
 // === PicoBeam 13-Channel Offsets ===
 // 0: Pan, 1: Pan Fine, 2: Tilt, 3: Tilt Fine, 4: Speed,
@@ -96,6 +107,7 @@ enum BarChannel {
 // === SCENES ===
 const byte SCENE_COUNT = 20;
 byte currentScene = 0;
+byte previousScene = 0;
 bool masterOn = false;
 
 // Scene data: Compact structure per scene
@@ -365,6 +377,56 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
 
 // === FUNCTIONS ===
 
+// Linear interpolation between two byte values
+byte lerpByte(byte from, byte to, byte step, byte totalSteps) {
+  if (step >= totalSteps) return to;
+  int delta = (int)to - (int)from;
+  return from + ((delta * step) / totalSteps);
+}
+
+// Interpolate between two PicoBeam states
+PicoBeamState lerpPicoBeam(const PicoBeamState& from, const PicoBeamState& to, byte step, byte totalSteps) {
+  PicoBeamState result;
+  result.pan = lerpByte(from.pan, to.pan, step, totalSteps);
+  result.tilt = lerpByte(from.tilt, to.tilt, step, totalSteps);
+  result.speed = lerpByte(from.speed, to.speed, step, totalSteps);
+  result.dimmer = lerpByte(from.dimmer, to.dimmer, step, totalSteps);
+  result.strobe = lerpByte(from.strobe, to.strobe, step, totalSteps);
+  result.red = lerpByte(from.red, to.red, step, totalSteps);
+  result.green = lerpByte(from.green, to.green, step, totalSteps);
+  result.blue = lerpByte(from.blue, to.blue, step, totalSteps);
+  result.white = lerpByte(from.white, to.white, step, totalSteps);
+  return result;
+}
+
+// Interpolate between two LED Bar states
+LedBarState lerpLedBar(const LedBarState& from, const LedBarState& to, byte step, byte totalSteps) {
+  LedBarState result;
+  result.dimmer = lerpByte(from.dimmer, to.dimmer, step, totalSteps);
+  result.red = lerpByte(from.red, to.red, step, totalSteps);
+  result.green = lerpByte(from.green, to.green, step, totalSteps);
+  result.blue = lerpByte(from.blue, to.blue, step, totalSteps);
+  return result;
+}
+
+// Save current scene to EEPROM
+void saveSceneToEEPROM() {
+  EEPROM.update(EEPROM_ADDR_SCENE, currentScene);
+  EEPROM.update(EEPROM_ADDR_MAGIC, EEPROM_MAGIC);
+}
+
+// Load scene from EEPROM (if valid)
+void loadSceneFromEEPROM() {
+  byte magic = EEPROM.read(EEPROM_ADDR_MAGIC);
+  if (magic == EEPROM_MAGIC) {
+    byte savedScene = EEPROM.read(EEPROM_ADDR_SCENE);
+    if (savedScene < SCENE_COUNT) {
+      currentScene = savedScene;
+      previousScene = savedScene;
+    }
+  }
+}
+
 void setup() {
   DMXSerial.init(DMXController);
 
@@ -375,6 +437,9 @@ void setup() {
   pinMode(PIN_MASTER, INPUT_PULLUP);
   pinMode(PIN_PREV, INPUT_PULLUP);
   pinMode(PIN_NEXT, INPUT_PULLUP);
+
+  // Load last scene from EEPROM
+  loadSceneFromEEPROM();
 
   // Set all channels to 0
   for (int i = 1; i <= TOTAL_CHANNELS; i++) {
@@ -391,22 +456,26 @@ void loop() {
 
   if (newMasterState != masterOn) {
     masterOn = newMasterState;
-    outputScene();
+    outputSceneWithFade();
     updateDisplay();
     delay(50);
   }
 
   // Read buttons
   if (buttonPressed(PIN_NEXT)) {
+    previousScene = currentScene;
     currentScene = (currentScene + 1) % SCENE_COUNT;
+    saveSceneToEEPROM();
     updateDisplay();
-    if (masterOn) outputScene();
+    if (masterOn) outputSceneWithFade();
   }
 
   if (buttonPressed(PIN_PREV)) {
+    previousScene = currentScene;
     currentScene = (currentScene + SCENE_COUNT - 1) % SCENE_COUNT;
+    saveSceneToEEPROM();
     updateDisplay();
-    if (masterOn) outputScene();
+    if (masterOn) outputSceneWithFade();
   }
 }
 
@@ -440,36 +509,62 @@ void updateDisplay() {
   display.writeDisplay();
 }
 
-void outputScene() {
+void outputSceneWithFade() {
   if (!masterOn) {
-    // Blackout
-    for (int i = 1; i <= TOTAL_CHANNELS; i++) {
-      DMXSerial.write(i, 0);
-    }
+    // Blackout - fade to black
+    Scene currentSceneData;
+    memcpy_P(&currentSceneData, &scenes[previousScene], sizeof(Scene));
+
+    Scene blackScene;
+    memcpy_P(&blackScene, &scenes[0], sizeof(Scene));  // Scene 0 is blackout
+
+    fadeToScene(currentSceneData, blackScene);
     return;
   }
 
-  // Read scene from PROGMEM
-  Scene scene;
-  memcpy_P(&scene, &scenes[currentScene], sizeof(Scene));
+  // Read previous and current scenes from PROGMEM
+  Scene fromScene;
+  Scene toScene;
+  memcpy_P(&fromScene, &scenes[previousScene], sizeof(Scene));
+  memcpy_P(&toScene, &scenes[currentScene], sizeof(Scene));
 
-  // PicoBeam 1
-  outputPicoBeam(PICO1_START, scene.pico1);
-
-  // PicoBeam 2
-  outputPicoBeam(PICO2_START, scene.pico2);
-
-  // LED Bars
-  outputLedBar(BAR1_START, scene.bar1);
-  outputLedBar(BAR2_START, scene.bar2);
-  outputLedBar(BAR3_START, scene.bar3);
-
-  // Botex
-  DMXSerial.write(BOTEX_COUCH, scene.couchLight);
-  DMXSerial.write(BOTEX_UV, scene.uvLight);
+  fadeToScene(fromScene, toScene);
 }
 
-void outputPicoBeam(byte startAddr, PicoBeamState state) {
+void fadeToScene(const Scene& from, const Scene& to) {
+  // UV light snaps instantly (no fade) - set it once before the fade loop
+  DMXSerial.write(BOTEX_UV, to.uvLight);
+
+  for (byte step = 0; step <= FADE_STEPS; step++) {
+    // Interpolate PicoBeams
+    PicoBeamState pico1 = lerpPicoBeam(from.pico1, to.pico1, step, FADE_STEPS);
+    PicoBeamState pico2 = lerpPicoBeam(from.pico2, to.pico2, step, FADE_STEPS);
+
+    // Interpolate LED Bars
+    LedBarState bar1 = lerpLedBar(from.bar1, to.bar1, step, FADE_STEPS);
+    LedBarState bar2 = lerpLedBar(from.bar2, to.bar2, step, FADE_STEPS);
+    LedBarState bar3 = lerpLedBar(from.bar3, to.bar3, step, FADE_STEPS);
+
+    // Interpolate couch light (but not UV - that's already set)
+    byte couchLight = lerpByte(from.couchLight, to.couchLight, step, FADE_STEPS);
+
+    // Output interpolated values
+    outputPicoBeam(PICO1_START, pico1);
+    outputPicoBeam(PICO2_START, pico2);
+    outputLedBar(BAR1_START, bar1);
+    outputLedBar(BAR2_START, bar2);
+    outputLedBar(BAR3_START, bar3);
+    DMXSerial.write(BOTEX_COUCH, couchLight);
+    // UV already set before loop - no need to write it again
+
+    // Wait before next step (except on last step)
+    if (step < FADE_STEPS) {
+      delay(FADE_STEP_DELAY);
+    }
+  }
+}
+
+void outputPicoBeam(byte startAddr, const PicoBeamState& state) {
   DMXSerial.write(startAddr + PICO_PAN, state.pan);
   DMXSerial.write(startAddr + PICO_PAN_FINE, 0);
   DMXSerial.write(startAddr + PICO_TILT, state.tilt);
@@ -485,7 +580,7 @@ void outputPicoBeam(byte startAddr, PicoBeamState state) {
   DMXSerial.write(startAddr + PICO_PROG_SPEED, 0);
 }
 
-void outputLedBar(byte startAddr, LedBarState state) {
+void outputLedBar(byte startAddr, const LedBarState& state) {
   DMXSerial.write(startAddr + BAR_DIMMER, state.dimmer);
   DMXSerial.write(startAddr + BAR_STROBE, 0);  // No strobe
 
