@@ -105,8 +105,10 @@ struct Scene {
   LedBarState bar1;
   LedBarState bar2;
   LedBarState bar3;
-  byte couchLight;  // 0-255
-  byte uvLight;     // 0 or 255
+  byte couchLight;      // 0-255
+  bool couchFade;       // Should couch light fade? (typically true)
+  byte uvLight;         // 0 or 255
+  bool uvFade;          // Should UV light fade? (typically false)
 };
 ```
 
@@ -135,7 +137,9 @@ Values depend on the physical mounting position of the PicoBeams. Calibrate on-s
 - 1-second linear fade between scenes (configurable)
 - 50 interpolation steps for smooth color mixing
 - Fades all channels: pan, tilt, colors, dimmer, etc.
-- UV light snaps instantly (no fade) for better visual effect
+- Per-fixture fade control via `couchFade` and `uvFade` flags
+  - UV light: `uvFade = false` → snaps instantly for better visual effect
+  - Couch light: `couchFade = true` → smooth fade
 - Adjustable via `FADE_DURATION_MS` and `FADE_STEPS` constants
 
 ### EEPROM Scene Memory

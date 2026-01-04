@@ -139,8 +139,10 @@ struct Scene {
   LedBarState bar1;
   LedBarState bar2;
   LedBarState bar3;
-  byte couchLight;  // Botex Dimmer hanging lamp 0-255
-  byte uvLight;     // Botex UV 0 or 255
+  byte couchLight;      // Botex Dimmer hanging lamp 0-255
+  bool couchFade;       // Should couch light fade?
+  byte uvLight;         // Botex UV 0 or 255
+  bool uvFade;          // Should UV light fade?
 };
 
 // Helper macros for readable scene definitions
@@ -159,7 +161,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     "Blackout",
     PICO_OFF, PICO_OFF,
     BAR_OFF, BAR_OFF, BAR_OFF,
-    0, 0
+    0, true,   // couchLight, couchFade
+    0, false   // uvLight, uvFade
   },
 
   // 1: Work light (Bars white, couch lamp on)
@@ -170,7 +173,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 255, 255, 255},
     {255, 255, 255, 255},
     {255, 255, 255, 255},
-    200, 0
+    200, true,
+    0, false
   },
 
   // 2: Work light dimmed
@@ -181,7 +185,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {150, 200, 200, 200},
     {150, 200, 200, 200},
     {150, 200, 200, 200},
-    120, 0
+    120, true,
+    0, false
   },
 
   // 3: Rehearsal standard (warm, cozy)
@@ -192,7 +197,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {180, 255, 120, 40},
     {180, 255, 120, 40},
     {180, 255, 120, 40},
-    150, 0
+    150, true,
+    0, false
   },
 
   // 4: Rehearsal focus (Picos as spot, couch subtle)
@@ -203,7 +209,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {80, 255, 180, 100},
     {80, 255, 180, 100},
     {80, 255, 180, 100},
-    80, 0
+    80, true,
+    0, false
   },
 
   // === MOOD SCENES ===
@@ -216,7 +223,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {200, 0, 50, 255},
     {200, 0, 50, 255},
     {200, 0, 50, 255},
-    100, 0
+    100, true,
+    0, false
   },
 
   // 6: Warm red/orange (Couch matches)
@@ -227,7 +235,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {220, 255, 80, 0},
     {220, 255, 80, 0},
     {220, 255, 80, 0},
-    180, 0
+    180, true,
+    0, false
   },
 
   // 7: Green nature
@@ -238,7 +247,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {200, 30, 255, 30},
     {200, 30, 255, 30},
     {200, 30, 255, 30},
-    60, 0
+    60, true,
+    0, false
   },
 
   // 8: Purple haze
@@ -249,7 +259,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {220, 180, 0, 255},
     {220, 180, 0, 255},
     {220, 180, 0, 255},
-    40, 0
+    40, true,
+    0, false
   },
 
   // 9: UV party (Couch off for UV effect)
@@ -260,7 +271,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {150, 100, 0, 200},
     {150, 100, 0, 200},
     {150, 100, 0, 200},
-    0, 255
+    0, true,
+    255, false
   },
 
   // === SHOW SCENES ===
@@ -273,7 +285,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 255, 0, 0},
     {255, 0, 0, 255},
     {255, 255, 0, 0},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 11: Show cyan/magenta
@@ -284,7 +297,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 255, 0, 255},
     {255, 0, 255, 255},
     {255, 255, 0, 255},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 12: Show full white
@@ -295,7 +309,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 255, 255, 255},
     {255, 255, 255, 255},
     {255, 255, 255, 255},
-    255, 0
+    255, true,
+    0, false
   },
 
   // 13: Show strobe (subtle)
@@ -306,7 +321,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 255, 255, 255},
     {255, 255, 255, 255},
     {255, 255, 255, 255},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 14: Show cross (Picos crossed)
@@ -317,7 +333,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {200, 255, 100, 0},
     {200, 0, 100, 255},
     {200, 255, 100, 0},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 15: Show rainbow bars (different colors)
@@ -328,7 +345,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 255, 0, 0},
     {255, 0, 255, 0},
     {255, 0, 0, 255},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 16: Show yellow power
@@ -339,7 +357,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 255, 200, 0},
     {255, 255, 200, 0},
     {255, 255, 200, 0},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 17: Show sweep position (Picos outward)
@@ -350,7 +369,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {200, 255, 0, 100},
     {200, 255, 0, 100},
     {200, 255, 0, 100},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 18: Show floor (Picos downward)
@@ -361,7 +381,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {255, 0, 200, 255},
     {255, 0, 200, 255},
     {255, 0, 200, 255},
-    0, 0
+    0, true,
+    0, false
   },
 
   // 19: Lounge (only couch lamp + subtle bars)
@@ -371,7 +392,8 @@ const Scene scenes[SCENE_COUNT] PROGMEM = {
     {100, 255, 100, 50},
     {100, 255, 100, 50},
     {100, 255, 100, 50},
-    255, 0
+    255, true,
+    0, false
   }
 };
 
@@ -532,21 +554,23 @@ void outputSceneWithFade() {
 }
 
 void fadeToScene(const Scene& from, const Scene& to) {
-  // UV light snaps instantly (no fade) - set it once before the fade loop
-  DMXSerial.write(BOTEX_UV, to.uvLight);
+  // Set non-fading fixtures instantly before the fade loop
+  if (!to.uvFade) {
+    DMXSerial.write(BOTEX_UV, to.uvLight);
+  }
+  if (!to.couchFade) {
+    DMXSerial.write(BOTEX_COUCH, to.couchLight);
+  }
 
   for (byte step = 0; step <= FADE_STEPS; step++) {
-    // Interpolate PicoBeams
+    // Interpolate PicoBeams (always fade)
     PicoBeamState pico1 = lerpPicoBeam(from.pico1, to.pico1, step, FADE_STEPS);
     PicoBeamState pico2 = lerpPicoBeam(from.pico2, to.pico2, step, FADE_STEPS);
 
-    // Interpolate LED Bars
+    // Interpolate LED Bars (always fade)
     LedBarState bar1 = lerpLedBar(from.bar1, to.bar1, step, FADE_STEPS);
     LedBarState bar2 = lerpLedBar(from.bar2, to.bar2, step, FADE_STEPS);
     LedBarState bar3 = lerpLedBar(from.bar3, to.bar3, step, FADE_STEPS);
-
-    // Interpolate couch light (but not UV - that's already set)
-    byte couchLight = lerpByte(from.couchLight, to.couchLight, step, FADE_STEPS);
 
     // Output interpolated values
     outputPicoBeam(PICO1_START, pico1);
@@ -554,8 +578,16 @@ void fadeToScene(const Scene& from, const Scene& to) {
     outputLedBar(BAR1_START, bar1);
     outputLedBar(BAR2_START, bar2);
     outputLedBar(BAR3_START, bar3);
-    DMXSerial.write(BOTEX_COUCH, couchLight);
-    // UV already set before loop - no need to write it again
+
+    // Output fading fixtures only if they should fade
+    if (to.couchFade) {
+      byte couchLight = lerpByte(from.couchLight, to.couchLight, step, FADE_STEPS);
+      DMXSerial.write(BOTEX_COUCH, couchLight);
+    }
+    if (to.uvFade) {
+      byte uvLight = lerpByte(from.uvLight, to.uvLight, step, FADE_STEPS);
+      DMXSerial.write(BOTEX_UV, uvLight);
+    }
 
     // Wait before next step (except on last step)
     if (step < FADE_STEPS) {

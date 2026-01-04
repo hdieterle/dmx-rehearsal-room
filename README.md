@@ -143,7 +143,10 @@ Adjust these values in the scene definitions based on your room layout.
 
 - **Memory**: Scenes stored in PROGMEM (Flash) to conserve RAM
 - **Scene Transitions**: 1-second linear fade with 50 interpolation steps
-  - UV light snaps instantly (no fade) for better visual effect
+  - Per-fixture fade control via boolean flags in scene definitions
+  - UV light: instant snap (better visual effect)
+  - Couch light: smooth fade
+  - PicoBeams and LED bars: always fade
 - **Scene Memory**: EEPROM-based persistence with magic number validation
 - **Display Update**: Immediate when changing scenes
 - **Button Debouncing**: 50ms debounce delay implemented
