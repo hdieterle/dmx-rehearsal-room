@@ -96,13 +96,13 @@ slide_switch_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (1
 // Rear panel components (rear = Y=case_width end)
 xlr_pos_x = case_length * 0.35;
 xlr_pos_y = case_width;
-xlr_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
+xlr_pos_z = case_bottom_height / 2 + 2;  // Raised 2mm higher (19.5mm) for shield solder bumps
 xlr_left_offset_x = 0;
 xlr_right_offset_x = xlr_spacing;
 
 dc_jack_pos_x = case_length * 0.15;
 dc_jack_pos_y = case_width;
-dc_jack_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
+dc_jack_pos_z = case_bottom_height / 2 + 2;  // Raised 2mm higher (19.5mm) to match XLRs
 
 // Top panel components
 display_pos_x = case_length * 0.5;
@@ -317,9 +317,7 @@ module xlr_cutout() {
     // Main circular hole
     cylinder(h=wall_thickness + 2, d=xlr_diameter, center=true);
 
-    // D-shape notch (simplified as small rectangular cutout at bottom)
-    translate([-xlr_diameter/2, -xlr_diameter/2 - 2, -wall_thickness/2 - 1])
-        cube([xlr_diameter, 2, wall_thickness + 2]);
+    // D-notch removed - not needed for Neutrik D-series panel mount
 
     // Mounting screw holes
     for (x_offset = [-xlr_screw_spacing/2, xlr_screw_spacing/2]) {
@@ -357,7 +355,7 @@ module labels() {
         linear_extrude(height=text_depth + 1)
             text("MASTER", size=4, halign="center", valign="center", font=font);
 
-    translate([button_prev_pos_x - 18, button_prev_pos_y, case_top_height - text_depth])
+    translate([button_prev_pos_x + 18, button_prev_pos_y, case_top_height - text_depth])
         linear_extrude(height=text_depth + 1)
             text("PREV", size=4, halign="center", valign="center", font=font);
 
