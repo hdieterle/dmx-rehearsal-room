@@ -150,6 +150,28 @@ module bottom_case() {
             translate([0, 0, -1])
                 cylinder(h=case_height/2 + 2, d=screw_hole_diameter);
         }
+
+        // Front panel cutouts (Y=0 wall) - bottom half
+        translate([usbc_pos_x, usbc_pos_y, usbc_pos_z])
+            rotate([90, 0, 0])
+                usbc_cutout();
+
+        translate([slide_switch_pos_x, slide_switch_pos_y, slide_switch_pos_z])
+            rotate([90, 0, 0])
+                slide_switch_cutout();
+
+        // Rear panel cutouts (Y=case_width wall) - bottom half
+        translate([xlr_pos_x + xlr_left_offset_x, xlr_pos_y, xlr_pos_z])
+            rotate([90, 0, 0])
+                xlr_cutout();
+
+        translate([xlr_pos_x + xlr_right_offset_x, xlr_pos_y, xlr_pos_z])
+            rotate([90, 0, 0])
+                xlr_cutout();
+
+        translate([dc_jack_pos_x, dc_jack_pos_y, dc_jack_pos_z])
+            rotate([90, 0, 0])
+                cylinder(h=wall_thickness + 2, d=dc_jack_hole_diameter, center=true);
     }
 }
 
