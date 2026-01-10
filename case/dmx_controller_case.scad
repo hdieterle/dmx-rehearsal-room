@@ -85,22 +85,24 @@ shield_pos_x = arduino_pos_x + arduino_length + 20; // 20mm gap for wiring
 shield_pos_y = 15;
 
 // Front panel components (front = Y=0 end)
-usbc_pos_x = case_length * 0.3;
+// USB and switch positioned above DMX shield (right side)
+usbc_pos_x = shield_pos_x + 10;  // Positioned above shield (~113mm from left)
 usbc_pos_y = 0;
 usbc_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
 
-slide_switch_pos_x = case_length * 0.7;
+slide_switch_pos_x = shield_pos_x + 45;  // Positioned right of USB (~148mm from left)
 slide_switch_pos_y = 0;
 slide_switch_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
 
 // Rear panel components (rear = Y=case_width end)
-xlr_pos_x = case_length * 0.35;
+// XLRs positioned above the DMX shield (right side of case)
+xlr_pos_x = shield_pos_x + 25;  // Positioned above shield (~129mm from left)
 xlr_pos_y = case_width;
 xlr_pos_z = case_bottom_height / 2 + 2;  // Raised 2mm higher (19.5mm) for shield solder bumps
 xlr_left_offset_x = 0;
 xlr_right_offset_x = xlr_spacing;
 
-dc_jack_pos_x = case_length * 0.15;
+dc_jack_pos_x = arduino_pos_x + 25;  // Positioned above Arduino (~40mm from left)
 dc_jack_pos_y = case_width;
 dc_jack_pos_z = case_bottom_height / 2 + 2;  // Raised 2mm higher (19.5mm) to match XLRs
 
@@ -369,10 +371,22 @@ module labels() {
             linear_extrude(height=text_depth + 1)
                 text("USB", size=4, halign="center", valign="center", font=font);
 
+    // Slide switch label above
     translate([slide_switch_pos_x, wall_thickness + text_depth, slide_switch_pos_z + 10])
         rotate([90, 0, 0])
             linear_extrude(height=text_depth + 1)
-                text("DMX | PROG", size=3.5, halign="center", valign="center", font=font);
+                text("MODE", size=3.5, halign="center", valign="center", font=font);
+
+    // Slide switch position labels (left and right of switch)
+    translate([slide_switch_pos_x - 12, wall_thickness + text_depth, slide_switch_pos_z])
+        rotate([90, 0, 0])
+            linear_extrude(height=text_depth + 1)
+                text("DMX", size=3, halign="center", valign="center", font=font);
+
+    translate([slide_switch_pos_x + 12, wall_thickness + text_depth, slide_switch_pos_z])
+        rotate([90, 0, 0])
+            linear_extrude(height=text_depth + 1)
+                text("PROG", size=3, halign="center", valign="center", font=font);
 
     // Rear panel labels (Y=case_width wall)
     translate([xlr_pos_x + xlr_left_offset_x, case_width - wall_thickness - text_depth - 1, xlr_pos_z + 15])
