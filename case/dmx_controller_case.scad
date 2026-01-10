@@ -85,22 +85,22 @@ shield_pos_y = 15;
 // Front panel components (front = Y=0 end)
 usbc_pos_x = case_length * 0.3;
 usbc_pos_y = 0;
-usbc_pos_z = case_height / 4;  // Center in the wall height
+usbc_pos_z = case_height / 2;  // At the split line between top and bottom
 
 slide_switch_pos_x = case_length * 0.7;
 slide_switch_pos_y = 0;
-slide_switch_pos_z = case_height / 4;  // Center in the wall height
+slide_switch_pos_z = case_height / 2;  // At the split line between top and bottom
 
 // Rear panel components (rear = Y=case_width end)
 xlr_pos_x = case_length * 0.35;
 xlr_pos_y = case_width;
-xlr_pos_z = case_height / 4;  // Center in the wall height
+xlr_pos_z = case_height / 2;  // At the split line between top and bottom
 xlr_left_offset_x = 0;
 xlr_right_offset_x = xlr_spacing;
 
 dc_jack_pos_x = case_length * 0.15;
 dc_jack_pos_y = case_width;
-dc_jack_pos_z = case_height / 4;  // Center in the wall height
+dc_jack_pos_z = case_height / 2;  // At the split line between top and bottom
 
 // Top panel components
 display_pos_x = case_length * 0.5;
