@@ -8,7 +8,9 @@ $fn = 60; // Circle resolution (higher = smoother, slower render)
 // Case dimensions
 case_length = 180;  // X direction (front to back)
 case_width = 140;   // Y direction (left to right)
-case_height = 50;   // Z direction (total height)
+case_height = 60;   // Z direction (total height - increased for better proportions)
+case_bottom_height = 35;  // Height of bottom case (contains all connectors)
+case_top_height = 25;     // Height of top case (lid)
 wall_thickness = 3; // Wall thickness
 
 // Screw posts for case assembly
@@ -85,22 +87,22 @@ shield_pos_y = 15;
 // Front panel components (front = Y=0 end)
 usbc_pos_x = case_length * 0.3;
 usbc_pos_y = 0;
-usbc_pos_z = case_height / 2;  // At the split line between top and bottom
+usbc_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
 
 slide_switch_pos_x = case_length * 0.7;
 slide_switch_pos_y = 0;
-slide_switch_pos_z = case_height / 2;  // At the split line between top and bottom
+slide_switch_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
 
 // Rear panel components (rear = Y=case_width end)
 xlr_pos_x = case_length * 0.35;
 xlr_pos_y = case_width;
-xlr_pos_z = case_height / 2;  // At the split line between top and bottom
+xlr_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
 xlr_left_offset_x = 0;
 xlr_right_offset_x = xlr_spacing;
 
 dc_jack_pos_x = case_length * 0.15;
 dc_jack_pos_y = case_width;
-dc_jack_pos_z = case_height / 2;  // At the split line between top and bottom
+dc_jack_pos_z = case_bottom_height / 2;  // Centered in bottom case wall (17.5mm)
 
 // Top panel components
 display_pos_x = case_length * 0.5;
@@ -125,15 +127,15 @@ module bottom_case() {
             // Bottom plate
             cube([case_length, case_width, wall_thickness]);
 
-            // Walls
+            // Walls (bottom case)
             translate([0, 0, 0])
-                cube([wall_thickness, case_width, case_height/2]);
+                cube([wall_thickness, case_width, case_bottom_height]);
             translate([case_length - wall_thickness, 0, 0])
-                cube([wall_thickness, case_width, case_height/2]);
+                cube([wall_thickness, case_width, case_bottom_height]);
             translate([0, 0, 0])
-                cube([case_length, wall_thickness, case_height/2]);
+                cube([case_length, wall_thickness, case_bottom_height]);
             translate([0, case_width - wall_thickness, 0])
-                cube([case_length, wall_thickness, case_height/2]);
+                cube([case_length, wall_thickness, case_bottom_height]);
 
             // Corner screw posts
             create_corner_posts();
@@ -148,10 +150,10 @@ module bottom_case() {
         // Screw holes in corner posts (threaded from top)
         corner_post_positions() {
             translate([0, 0, -1])
-                cylinder(h=case_height/2 + 2, d=screw_hole_diameter);
+                cylinder(h=case_bottom_height + 2, d=screw_hole_diameter);
         }
 
-        // Front panel cutouts (Y=0 wall) - bottom half
+        // Front panel cutouts (Y=0 wall) - all in bottom case
         translate([usbc_pos_x, usbc_pos_y, usbc_pos_z])
             rotate([90, 0, 0])
                 usbc_cutout();
@@ -175,68 +177,46 @@ module bottom_case() {
     }
 }
 
-// Top case half
+// Top case half (lid)
 module top_case() {
     difference() {
         // Main shell
         union() {
             // Top plate
-            translate([0, 0, case_height/2 - wall_thickness])
+            translate([0, 0, case_top_height - wall_thickness])
                 cube([case_length, case_width, wall_thickness]);
 
-            // Walls
+            // Walls (top case - shorter, acts as lid)
             translate([0, 0, 0])
-                cube([wall_thickness, case_width, case_height/2]);
+                cube([wall_thickness, case_width, case_top_height]);
             translate([case_length - wall_thickness, 0, 0])
-                cube([wall_thickness, case_width, case_height/2]);
+                cube([wall_thickness, case_width, case_top_height]);
             translate([0, 0, 0])
-                cube([case_length, wall_thickness, case_height/2]);
+                cube([case_length, wall_thickness, case_top_height]);
             translate([0, case_width - wall_thickness, 0])
-                cube([case_length, wall_thickness, case_height/2]);
+                cube([case_length, wall_thickness, case_top_height]);
 
-            // Corner screw posts
-            create_corner_posts();
+            // Corner screw posts (top case)
+            create_corner_posts_top();
         }
 
         // Top panel cutouts
-        translate([display_pos_x, display_pos_y, case_height/2 - wall_thickness - 1])
+        translate([display_pos_x, display_pos_y, case_top_height - wall_thickness - 1])
             display_cutout();
 
-        translate([toggle_pos_x, toggle_pos_y, case_height/2 - wall_thickness - 1])
+        translate([toggle_pos_x, toggle_pos_y, case_top_height - wall_thickness - 1])
             cylinder(h=wall_thickness + 2, d=toggle_hole_diameter);
 
-        translate([button_prev_pos_x, button_prev_pos_y, case_height/2 - wall_thickness - 1])
+        translate([button_prev_pos_x, button_prev_pos_y, case_top_height - wall_thickness - 1])
             cylinder(h=wall_thickness + 2, d=button_hole_diameter);
 
-        translate([button_next_pos_x, button_next_pos_y, case_height/2 - wall_thickness - 1])
+        translate([button_next_pos_x, button_next_pos_y, case_top_height - wall_thickness - 1])
             cylinder(h=wall_thickness + 2, d=button_hole_diameter);
-
-        // Front panel cutouts (Y=0 wall)
-        translate([usbc_pos_x, usbc_pos_y, usbc_pos_z])
-            rotate([90, 0, 0])
-                usbc_cutout();
-
-        translate([slide_switch_pos_x, slide_switch_pos_y, slide_switch_pos_z])
-            rotate([90, 0, 0])
-                slide_switch_cutout();
-
-        // Rear panel cutouts (Y=case_width wall)
-        translate([xlr_pos_x + xlr_left_offset_x, xlr_pos_y, xlr_pos_z])
-            rotate([90, 0, 0])
-                xlr_cutout();
-
-        translate([xlr_pos_x + xlr_right_offset_x, xlr_pos_y, xlr_pos_z])
-            rotate([90, 0, 0])
-                xlr_cutout();
-
-        translate([dc_jack_pos_x, dc_jack_pos_y, dc_jack_pos_z])
-            rotate([90, 0, 0])
-                cylinder(h=wall_thickness + 2, d=dc_jack_hole_diameter, center=true);
 
         // Screw holes in corner posts (clearance from bottom)
         corner_post_positions() {
             translate([0, 0, -1])
-                cylinder(h=case_height/2 + 2, d=screw_hole_diameter);
+                cylinder(h=case_top_height + 2, d=screw_hole_diameter);
         }
 
         // Labels (debossed text)
@@ -259,10 +239,21 @@ module corner_post_positions() {
     }
 }
 
-// Create corner screw posts (solid cylinders)
-module create_corner_posts() {
+// Create corner screw posts for bottom case
+module create_corner_posts_bottom() {
     corner_post_positions()
-        cylinder(h=case_height/2 - wall_thickness, d=screw_post_diameter);
+        cylinder(h=case_bottom_height - wall_thickness, d=screw_post_diameter);
+}
+
+// Create corner screw posts for top case
+module create_corner_posts_top() {
+    corner_post_positions()
+        cylinder(h=case_top_height - wall_thickness, d=screw_post_diameter);
+}
+
+// Compatibility wrapper - defaults to bottom
+module create_corner_posts() {
+    create_corner_posts_bottom();
 }
 
 // Arduino mounting post positions
@@ -358,19 +349,19 @@ module labels() {
     font = "Liberation Sans:style=Bold";
 
     // Top panel labels
-    translate([display_pos_x, display_pos_y + display_height/2 + 8, case_height/2 - text_depth])
+    translate([display_pos_x, display_pos_y + display_height/2 + 8, case_top_height - text_depth])
         linear_extrude(height=text_depth + 1)
             text("SCENE", size=5, halign="center", valign="center", font=font);
 
-    translate([toggle_pos_x, toggle_pos_y - 15, case_height/2 - text_depth])
+    translate([toggle_pos_x, toggle_pos_y - 15, case_top_height - text_depth])
         linear_extrude(height=text_depth + 1)
             text("MASTER", size=4, halign="center", valign="center", font=font);
 
-    translate([button_prev_pos_x - 18, button_prev_pos_y, case_height/2 - text_depth])
+    translate([button_prev_pos_x - 18, button_prev_pos_y, case_top_height - text_depth])
         linear_extrude(height=text_depth + 1)
             text("PREV", size=4, halign="center", valign="center", font=font);
 
-    translate([button_next_pos_x + 18, button_next_pos_y, case_height/2 - text_depth])
+    translate([button_next_pos_x + 18, button_next_pos_y, case_top_height - text_depth])
         linear_extrude(height=text_depth + 1)
             text("NEXT", size=4, halign="center", valign="center", font=font);
 
@@ -415,5 +406,5 @@ bottom_case();
 
 // Both cases together for visualization
 // bottom_case();
-// translate([0, 0, case_height/2])
+// translate([0, 0, case_bottom_height])
 //     top_case();
