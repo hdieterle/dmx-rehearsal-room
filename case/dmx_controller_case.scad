@@ -82,24 +82,25 @@ arduino_pos_y = 15;
 shield_pos_x = arduino_pos_x + arduino_length + 20; // 20mm gap for wiring
 shield_pos_y = 15;
 
-// Front panel components (front = X=0 end)
-usbc_pos_x = 0;
-usbc_pos_y = case_width * 0.3;
-usbc_pos_z = case_height * 0.5;
+// Front panel components (front = Y=0 end)
+usbc_pos_x = case_length * 0.3;
+usbc_pos_y = 0;
+usbc_pos_z = case_height / 4;  // Center in the wall height
 
-slide_switch_pos_x = 0;
-slide_switch_pos_y = case_width * 0.7;
-slide_switch_pos_z = case_height * 0.5;
+slide_switch_pos_x = case_length * 0.7;
+slide_switch_pos_y = 0;
+slide_switch_pos_z = case_height / 4;  // Center in the wall height
 
-// Rear panel components (rear = X=case_length end)
-xlr_pos_x = case_length;
-xlr_left_pos_y = case_width * 0.35;
-xlr_right_pos_y = xlr_left_pos_y + xlr_spacing;
-xlr_pos_z = case_height * 0.5;
+// Rear panel components (rear = Y=case_width end)
+xlr_pos_x = case_length * 0.35;
+xlr_pos_y = case_width;
+xlr_pos_z = case_height / 4;  // Center in the wall height
+xlr_left_offset_x = 0;
+xlr_right_offset_x = xlr_spacing;
 
-dc_jack_pos_x = case_length;
-dc_jack_pos_y = case_width * 0.15;
-dc_jack_pos_z = case_height * 0.5;
+dc_jack_pos_x = case_length * 0.15;
+dc_jack_pos_y = case_width;
+dc_jack_pos_z = case_height / 4;  // Center in the wall height
 
 // Top panel components
 display_pos_x = case_length * 0.5;
@@ -188,26 +189,26 @@ module top_case() {
         translate([button_next_pos_x, button_next_pos_y, case_height/2 - wall_thickness - 1])
             cylinder(h=wall_thickness + 2, d=button_hole_diameter);
 
-        // Front panel cutouts
+        // Front panel cutouts (Y=0 wall)
         translate([usbc_pos_x, usbc_pos_y, usbc_pos_z])
-            rotate([0, 90, 0])
+            rotate([90, 0, 0])
                 usbc_cutout();
 
         translate([slide_switch_pos_x, slide_switch_pos_y, slide_switch_pos_z])
-            rotate([0, 90, 0])
+            rotate([90, 0, 0])
                 slide_switch_cutout();
 
-        // Rear panel cutouts
-        translate([xlr_pos_x, xlr_left_pos_y, xlr_pos_z])
-            rotate([0, 90, 0])
+        // Rear panel cutouts (Y=case_width wall)
+        translate([xlr_pos_x + xlr_left_offset_x, xlr_pos_y, xlr_pos_z])
+            rotate([90, 0, 0])
                 xlr_cutout();
 
-        translate([xlr_pos_x, xlr_right_pos_y, xlr_pos_z])
-            rotate([0, 90, 0])
+        translate([xlr_pos_x + xlr_right_offset_x, xlr_pos_y, xlr_pos_z])
+            rotate([90, 0, 0])
                 xlr_cutout();
 
         translate([dc_jack_pos_x, dc_jack_pos_y, dc_jack_pos_z])
-            rotate([0, 90, 0])
+            rotate([90, 0, 0])
                 cylinder(h=wall_thickness + 2, d=dc_jack_hole_diameter, center=true);
 
         // Screw holes in corner posts (clearance from bottom)
@@ -351,30 +352,30 @@ module labels() {
         linear_extrude(height=text_depth + 1)
             text("NEXT", size=4, halign="center", valign="center", font=font);
 
-    // Front panel labels
-    translate([wall_thickness + text_depth, usbc_pos_y - 10, usbc_pos_z])
-        rotate([90, 0, 90])
+    // Front panel labels (Y=0 wall)
+    translate([usbc_pos_x, wall_thickness + text_depth, usbc_pos_z + 10])
+        rotate([90, 0, 0])
             linear_extrude(height=text_depth + 1)
                 text("USB", size=4, halign="center", valign="center", font=font);
 
-    translate([wall_thickness + text_depth, slide_switch_pos_y - 15, slide_switch_pos_z])
-        rotate([90, 0, 90])
+    translate([slide_switch_pos_x, wall_thickness + text_depth, slide_switch_pos_z + 10])
+        rotate([90, 0, 0])
             linear_extrude(height=text_depth + 1)
                 text("DMX | PROG", size=3.5, halign="center", valign="center", font=font);
 
-    // Rear panel labels
-    translate([case_length - wall_thickness - text_depth - 1, xlr_left_pos_y, xlr_pos_z + 15])
-        rotate([90, 0, -90])
+    // Rear panel labels (Y=case_width wall)
+    translate([xlr_pos_x + xlr_left_offset_x, case_width - wall_thickness - text_depth - 1, xlr_pos_z + 15])
+        rotate([90, 0, 0])
             linear_extrude(height=text_depth + 1)
                 text("DMX OUT", size=3.5, halign="center", valign="center", font=font);
 
-    translate([case_length - wall_thickness - text_depth - 1, xlr_right_pos_y, xlr_pos_z + 15])
-        rotate([90, 0, -90])
+    translate([xlr_pos_x + xlr_right_offset_x, case_width - wall_thickness - text_depth - 1, xlr_pos_z + 15])
+        rotate([90, 0, 0])
             linear_extrude(height=text_depth + 1)
                 text("DMX THRU", size=3.5, halign="center", valign="center", font=font);
 
-    translate([case_length - wall_thickness - text_depth - 1, dc_jack_pos_y, dc_jack_pos_z + 10])
-        rotate([90, 0, -90])
+    translate([dc_jack_pos_x, case_width - wall_thickness - text_depth - 1, dc_jack_pos_z + 10])
+        rotate([90, 0, 0])
             linear_extrude(height=text_depth + 1)
                 text("12V DC", size=3.5, halign="center", valign="center", font=font);
 }
