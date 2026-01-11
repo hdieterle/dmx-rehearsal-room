@@ -175,7 +175,11 @@ module bottom_case() {
 
         translate([dc_jack_pos_x, dc_jack_pos_y, dc_jack_pos_z])
             rotate([90, 0, 0])
-                cylinder(h=wall_thickness + 2, d=dc_jack_hole_diameter, center=true);
+                translate([0, 0, -wall_thickness - 1])
+                    cylinder(h=wall_thickness + 4, d=dc_jack_hole_diameter);
+
+        // Front/Rear panel labels (debossed text on bottom case)
+        labels_bottom_case();
     }
 }
 
@@ -289,44 +293,46 @@ module create_arduino_posts() {
 
 // USB-C panel mount cutout
 module usbc_cutout() {
-    // Main hole
-    cylinder(h=wall_thickness + 2, d=usbc_hole_diameter, center=true);
+    // Main hole - cut all the way through
+    translate([0, 0, -wall_thickness - 1])
+        cylinder(h=wall_thickness + 4, d=usbc_hole_diameter);
 
-    // Bezel recess
-    translate([0, 0, wall_thickness/2 - usbc_bezel_depth/2])
+    // Bezel recess (on inside of case)
+    translate([0, 0, -1])
         cylinder(h=usbc_bezel_depth + 1, d=usbc_bezel_diameter);
 }
 
 // Slide switch cutout (SS-22L05)
 module slide_switch_cutout() {
-    // Slider slot
-    translate([-slide_switch_slot_length/2, -slide_switch_slot_width/2, -wall_thickness/2 - 1])
-        cube([slide_switch_slot_length, slide_switch_slot_width, wall_thickness + 2]);
+    // Slider slot - cut all the way through
+    translate([-slide_switch_slot_length/2, -slide_switch_slot_width/2, -wall_thickness - 1])
+        cube([slide_switch_slot_length, slide_switch_slot_width, wall_thickness + 4]);
 
-    // Body clearance (rectangular cutout)
-    translate([-slide_switch_height/2, -slide_switch_width/2, -wall_thickness/2 - 1])
-        cube([slide_switch_height, slide_switch_width, wall_thickness + 2]);
+    // Body clearance (rectangular cutout) - cut all the way through
+    translate([-slide_switch_height/2, -slide_switch_width/2, -wall_thickness - 1])
+        cube([slide_switch_height, slide_switch_width, wall_thickness + 4]);
 
-    // M2 mounting screw holes
+    // M2 mounting screw holes - cut all the way through
     for (offset = [-slide_switch_screw_spacing/2, slide_switch_screw_spacing/2]) {
-        translate([0, offset, 0])
-            cylinder(h=wall_thickness + 2, d=slide_switch_screw_hole, center=true);
+        translate([0, offset, -wall_thickness - 1])
+            cylinder(h=wall_thickness + 4, d=slide_switch_screw_hole);
     }
 }
 
 // XLR cutout (Neutrik D-series)
 module xlr_cutout() {
-    // Main circular hole
-    cylinder(h=wall_thickness + 2, d=xlr_diameter, center=true);
+    // Main circular hole - cut all the way through
+    translate([0, 0, -wall_thickness - 1])
+        cylinder(h=wall_thickness + 4, d=xlr_diameter);
 
     // D-notch removed - not needed for Neutrik D-series panel mount
 
-    // Mounting screw holes
+    // Mounting screw holes - cut all the way through
     for (x_offset = [-xlr_screw_spacing/2, xlr_screw_spacing/2]) {
-        translate([x_offset, -xlr_screw_vertical/2, 0])
-            cylinder(h=wall_thickness + 2, d=xlr_screw_hole, center=true);
-        translate([x_offset, xlr_screw_vertical/2, 0])
-            cylinder(h=wall_thickness + 2, d=xlr_screw_hole, center=true);
+        translate([x_offset, -xlr_screw_vertical/2, -wall_thickness - 1])
+            cylinder(h=wall_thickness + 4, d=xlr_screw_hole);
+        translate([x_offset, xlr_screw_vertical/2, -wall_thickness - 1])
+            cylinder(h=wall_thickness + 4, d=xlr_screw_hole);
     }
 }
 
@@ -344,9 +350,53 @@ module display_cutout() {
     }
 }
 
-// Labels (debossed text)
+// Labels for bottom case (front and rear panels)
+module labels_bottom_case() {
+    font = "Liberation Sans:style=Bold";
+
+    // Front panel labels (Y=0 wall) - debossed into outside surface
+    translate([usbc_pos_x, 0, usbc_pos_z + 10])
+        rotate([90, 0, 0])
+            linear_extrude(height=text_depth)
+                text("USB", size=4, halign="center", valign="center", font=font);
+
+    // Slide switch position labels (stacked vertically to the right of switch)
+    translate([slide_switch_pos_x + 12, 0, slide_switch_pos_z + 5])
+        rotate([90, 0, 0])
+            linear_extrude(height=text_depth)
+                text("DMX", size=3, halign="left", valign="center", font=font);
+
+    translate([slide_switch_pos_x + 12, 0, slide_switch_pos_z - 5])
+        rotate([90, 0, 0])
+            linear_extrude(height=text_depth)
+                text("PROG", size=3, halign="left", valign="center", font=font);
+
+    // Rear panel labels (Y=case_width wall) - debossed into outside surface
+    // Labels positioned BELOW the connectors
+    translate([xlr_pos_x + xlr_left_offset_x, case_width, xlr_pos_z - 15])
+        rotate([90, 0, 180])
+            linear_extrude(height=text_depth)
+                text("DMX THRU", size=3.5, halign="center", valign="center", font=font);
+
+    translate([xlr_pos_x + xlr_right_offset_x, case_width, xlr_pos_z - 15])
+        rotate([90, 0, 180])
+            linear_extrude(height=text_depth)
+                text("DMX OUT", size=3.5, halign="center", valign="center", font=font);
+
+    translate([dc_jack_pos_x, case_width, dc_jack_pos_z - 10])
+        rotate([90, 0, 180])
+            linear_extrude(height=text_depth)
+                text("12V DC", size=3.5, halign="center", valign="center", font=font);
+}
+
+// Labels for top case (top panel only)
 module labels() {
     font = "Liberation Sans:style=Bold";
+
+    // Large title label at top
+    translate([case_length / 2, case_width * 0.15, case_top_height - text_depth])
+        linear_extrude(height=text_depth + 1)
+            text("DMX LIGHT BOX", size=8, halign="center", valign="center", font=font);
 
     // Top panel labels
     translate([display_pos_x, display_pos_y + display_height/2 + 8, case_top_height - text_depth])
@@ -364,45 +414,6 @@ module labels() {
     translate([button_next_pos_x + 18, button_next_pos_y, case_top_height - text_depth])
         linear_extrude(height=text_depth + 1)
             text("NEXT", size=4, halign="center", valign="center", font=font);
-
-    // Front panel labels (Y=0 wall)
-    translate([usbc_pos_x, wall_thickness + text_depth, usbc_pos_z + 10])
-        rotate([90, 0, 0])
-            linear_extrude(height=text_depth + 1)
-                text("USB", size=4, halign="center", valign="center", font=font);
-
-    // Slide switch label above
-    translate([slide_switch_pos_x, wall_thickness + text_depth, slide_switch_pos_z + 10])
-        rotate([90, 0, 0])
-            linear_extrude(height=text_depth + 1)
-                text("MODE", size=3.5, halign="center", valign="center", font=font);
-
-    // Slide switch position labels (left and right of switch)
-    translate([slide_switch_pos_x - 12, wall_thickness + text_depth, slide_switch_pos_z])
-        rotate([90, 0, 0])
-            linear_extrude(height=text_depth + 1)
-                text("DMX", size=3, halign="center", valign="center", font=font);
-
-    translate([slide_switch_pos_x + 12, wall_thickness + text_depth, slide_switch_pos_z])
-        rotate([90, 0, 0])
-            linear_extrude(height=text_depth + 1)
-                text("PROG", size=3, halign="center", valign="center", font=font);
-
-    // Rear panel labels (Y=case_width wall)
-    translate([xlr_pos_x + xlr_left_offset_x, case_width - wall_thickness - text_depth - 1, xlr_pos_z + 15])
-        rotate([90, 0, 0])
-            linear_extrude(height=text_depth + 1)
-                text("DMX OUT", size=3.5, halign="center", valign="center", font=font);
-
-    translate([xlr_pos_x + xlr_right_offset_x, case_width - wall_thickness - text_depth - 1, xlr_pos_z + 15])
-        rotate([90, 0, 0])
-            linear_extrude(height=text_depth + 1)
-                text("DMX THRU", size=3.5, halign="center", valign="center", font=font);
-
-    translate([dc_jack_pos_x, case_width - wall_thickness - text_depth - 1, dc_jack_pos_z + 10])
-        rotate([90, 0, 0])
-            linear_extrude(height=text_depth + 1)
-                text("12V DC", size=3.5, halign="center", valign="center", font=font);
 }
 
 // ========== RENDER ==========
